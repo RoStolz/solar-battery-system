@@ -14,9 +14,36 @@ const char* password = "WIFI_Password";
 
 SSD1306Wire  display(0x3c, 21, 22);
 
-#define LIPO_BATTERY_CHANNEL 1
-#define SOLAR_CELL_CHANNEL 2
-#define OUTPUT_CHANNEL 3
+//Stromsensor
+#define SOLAR_CELL_CHANNEL 1
+#define BATTERY_CHARGER_CHANNEL 2
+#define BATTERY_OUTPUT_CHANNEL 3
+
+float batterieSpannung;
+float ladeStrom;
+float solarStrom;
+float ausgangsStrom;
+
+//#define KALIBRIERUNG
+
+
+//Kalibrierfunktion Stromsensoren
+//Stromanzeige bei 0A Teststrom
+#define mVbei0Ach1 0
+#define mVbei0Ach2 0
+#define mVbei0Ach3 0
+#define R1 5.25
+#define R2 0.34
+#define R3 5.22
+#define R4 3.37
+#define R5 1.49
+
+//Stromanzeige bei 1A Teststrom
+#define mVbei1Ach1 5
+#define mVbei1Ach2 5
+#define mVbei1Ach3 5
+
+//Formel: (mVgemessen-mVbei0Ach1)/(mVbei1Ach1-mVbei0Ach1)
 
 Adafruit_BMP280 bme;
 
@@ -94,9 +121,20 @@ void loop() {
   display.setFont(ArialMT_Plain_10);
   display.drawString(0, 0, "T: " + String(bme.readTemperature() - 2));
   display.drawString(0, 10, "P: " + String(bme.readPressure()));
+
+#ifdef KALIBRIERUNG
   display.drawString(0, 20, "U1: " + String(ina3221.getBusVoltage_V(1)) + "V" + String(ina3221.getShuntVoltage_mV(1)) + "mV");
   display.drawString(0, 30, "U2: " + String(ina3221.getBusVoltage_V(2)) + "V" + String(ina3221.getShuntVoltage_mV(2)) + "mV");
   display.drawString(0, 40, "U3: " + String(ina3221.getBusVoltage_V(3)) + "V" + String(ina3221.getShuntVoltage_mV(3)) + "mV");
+#else
+  //Anzeige des momentanen Stromes einfügen
+  //Formel für I3 ist falsch
+  display.drawString(0, 20, "I1: " + String(-ina3221.getShuntVoltage_mV(1) / R1) + "A");
+  display.drawString(0, 30, "I2: " + String(-(ina3221.getShuntVoltage_mV(2) + ((ina3221.getShuntVoltage_mV(1) / R1)*R2)) / R3) + "A");
+  //display.drawString(0, 40, "I3+: " + String((ina3221.getShuntVoltage_mV(3) + ((ina3221.getShuntVoltage_mV(1) / R1)*R2) + ((1 * (ina3221.getShuntVoltage_mV(1) / R1) + ina3221.getShuntVoltage_mV(2) / R3)*R4)) / R5) + "A");
+  //falsch ~1:6  display.drawString(0, 40, "I3+: " + String((ina3221.getShuntVoltage_mV(3) + ((ina3221.getShuntVoltage_mV(1) / R1)*R2) + ((ina3221.getShuntVoltage_mV(1) / R1 + ((ina3221.getShuntVoltage_mV(2) + ((ina3221.getShuntVoltage_mV(1) / R1)*R2)) / R3))*R4)) / R5) + "A");
+  display.drawString(0, 40, "I32: " + String((ina3221.getShuntVoltage_mV(3)+(ina3221.getShuntVoltage_mV(2) + ((ina3221.getShuntVoltage_mV(1) / R1)*R2)) / R3*R4)/R5) + "A");
+#endif
   display.drawString(0, 50, "5. OTA Update");
   display.display();
   delay(1000);
