@@ -129,13 +129,34 @@ void loop() {
 #else
   //Anzeige des momentanen Stromes einfügen
   //Formel für I3 ist falsch
-  display.drawString(0, 20, "I1: " + String(-ina3221.getShuntVoltage_mV(1) / R1) + "A");
-  display.drawString(0, 30, "I2: " + String(-(ina3221.getShuntVoltage_mV(2) + ((ina3221.getShuntVoltage_mV(1) / R1)*R2)) / R3) + "A");
-  //display.drawString(0, 40, "I3+: " + String((ina3221.getShuntVoltage_mV(3) + ((ina3221.getShuntVoltage_mV(1) / R1)*R2) + ((1 * (ina3221.getShuntVoltage_mV(1) / R1) + ina3221.getShuntVoltage_mV(2) / R3)*R4)) / R5) + "A");
-  //falsch ~1:6  display.drawString(0, 40, "I3+: " + String((ina3221.getShuntVoltage_mV(3) + ((ina3221.getShuntVoltage_mV(1) / R1)*R2) + ((ina3221.getShuntVoltage_mV(1) / R1 + ((ina3221.getShuntVoltage_mV(2) + ((ina3221.getShuntVoltage_mV(1) / R1)*R2)) / R3))*R4)) / R5) + "A");
-  display.drawString(0, 40, "I32: " + String((ina3221.getShuntVoltage_mV(3)+(ina3221.getShuntVoltage_mV(2) + ((ina3221.getShuntVoltage_mV(1) / R1)*R2)) / R3*R4)/R5) + "A");
+  display.drawString(0, 20, "I1: " + String(getCurrent(1)) + "A");
+  display.drawString(0, 30, "I2: " + String(getCurrent(2)) + "A");
+  display.drawString(0, 40, "I3: " + String(getCurrent(3)) + "A");
 #endif
   display.drawString(0, 50, "5. OTA Update");
   display.display();
   delay(1000);
+}
+
+
+float getCurrent(int channel) {
+  float currentCH1;
+  float currentCH2;
+  float currentCH3;
+  float shuntVoltageCH1 = ina3221.getShuntVoltage_mV(1);
+  float shuntVoltageCH2 = ina3221.getShuntVoltage_mV(2);
+  float shuntVoltageCH3 = ina3221.getShuntVoltage_mV(3);
+  currentCH1 = shuntVoltageCH1 / R1;
+  shuntVoltageCH2 = shuntVoltageCH2 + currentCH1 / R2;
+  currentCH2 = shuntVoltageCH2 / R3;
+  shuntVoltageCH3 = shuntVoltageCH3 + currentCH1 / R2 + (currentCH1 + currentCH2) / R4;
+  currentCH3 = shuntVoltageCH3 / R5;
+  switch (channel) {
+    case 1:
+      return currentCH1;
+    case 2:
+      return currentCH2;
+    case 3:
+      return currentCH3;
+  }
 }
