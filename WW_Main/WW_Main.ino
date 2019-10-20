@@ -1,3 +1,4 @@
+#include "config.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
@@ -9,8 +10,6 @@
 #include <SDL_Arduino_INA3221.h>
 
 SDL_Arduino_INA3221 ina3221;
-const char* ssid = "WIFI_Name";
-const char* password = "WIFI_Password";
 
 SSD1306Wire  display(0x3c, 21, 22);
 
