@@ -1,0 +1,3 @@
+// WIFI name and password for OTA update
+const char* ssid = "";
+const char* password = "";
